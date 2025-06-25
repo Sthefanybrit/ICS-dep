@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link rel="stylesheet" href="/templates/static/style.css" />
+</head>
+<body>
+  <form id="form-login">
+    <h2>Login</h2>
+    <input type="text" name="usuario" placeholder="Usuário" required />
+    <input type="password" name="senha" placeholder="Senha" required />
+    <p id="erro-login" style="color: #ff6b6b; font-weight: 600;"></p>
+    <button type="submit" class="login-btn">Entrar</button>
+    <a href="/templates/cadastro.html">Não tem conta? Cadastre-se</a>
+  </form>
+  <p id="erro-login" style="color: #ff6b6b; font-weight: 600;"></p>
+
+<script>
+document.querySelector("form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+
+  fetch("/login", {
+    method: "POST",
+    body: new URLSearchParams(formData),
+  })
+  .then(res => {
+    if (res.status === 200) {
+      res.text().then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        document.body.innerHTML = doc.body.innerHTML;
+
+        // carrega todos scripts externos manualmente
+        doc.querySelectorAll("script[src]").forEach(oldScript => {
+          const newScript = document.createElement("script");
+          newScript.src = oldScript.src;
+          document.body.appendChild(newScript);
+        });
+
+        // executa script inline, se houver
+        doc.querySelectorAll("script:not([src])").forEach(inlineScript => {
+          eval(inlineScript.textContent);
+        });
+      });
+    } else {
+      document.getElementById("erro-login").textContent = "Login inválido. Tente novamente.";
+    }
+  });
+});
+</script>
+</body>
+</html>
